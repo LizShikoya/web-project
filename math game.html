@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #6699ff;
+        }
+
+        .question {
+            margin-bottom: 10px;
+        }
+
+        #submit-btn, #refresh-btn {
+            padding: 8px 20px;
+            margin-top: 20px;
+            background-color: #6699ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #timer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .answer {
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Math Game</h1>
+    <div id="questions-container"></div>
+    <button id="submit-btn">Submit</button>
+    <button id="refresh-btn">Refresh</button>
+    <div id="result"></div>
+    <div id="timer">Time Left: <span id="time-left"></span></div>
+</div>
+
+<script>
+    const questionsContainer = document.getElementById('questions-container');
+    const submitBtn = document.getElementById('submit-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const resultElement = document.getElementById('result');
+    const timerElement = document.getElementById('time-left');
+
+    let questions = [];
+    let correctAnswers = 0;
+    let timer;
+
+    function generateQuestions() {
+        questions = [];
+        for (let i = 0; i < 6; i++) {
+            const num1 = Math.floor(Math.random() * 90) + 10; // Generate random number between 10 and 99
+            const num2 = Math.floor(Math.random() * 90) + 10; // Generate random number between 10 and 99
+            questions.push({ num1, num2 });
+        }
+        renderQuestions();
+        startTimer();
+    }
+
+    function renderQuestions() {
+        questionsContainer.innerHTML = '';
+        questions.forEach((question, index) => {
+            const questionElement = document.createElement('div');
+            questionElement.classList.add('question');
+            questionElement.textContent = `${index + 1}. ${question.num1} + ${question.num2} = `;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.classList.add('answer-input');
+            input.dataset.index = index;
+            questionElement.appendChild(input);
+            questionsContainer.appendChild(questionElement);
+        });
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        let timeLeft = 30;
+        timer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                submitGame();
+            } else {
+                timerElement.textContent = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function submitGame() {
+        submitBtn.disabled = true;
+        refreshBtn.disabled = true;
+        clearInterval(timer);
+        resultElement.textContent = 'Time\'s up! Submitting answers...';
+        setTimeout(() => {
+            calculateScore();
+        }, 1000);
+    }
+
+    function calculateScore() {
+        questions.forEach((question, index) => {
+            const input = document.querySelector(`.answer-input[data-index="${index}"]`);
+            const answer = parseInt(input.value);
+            const correctAnswer = question.num1 + question.num2;
+            const answerText = document.createElement('span');
+            if (!isNaN(answer) && answer === correctAnswer) {
+                correctAnswers++;
+                answerText.textContent = ` (${correctAnswer})`;
+                answerText.classList.add('answer');
+            } else {
+                answerText.textContent = ` (Correct answer: ${correctAnswer})`;
+            }
+            input.parentNode.appendChild(answerText);
+        });
+        const score = Math.round((correctAnswers / 6) * 100);
+        resultElement.textContent = `Congratulations! You scored ${score}%`;
+    }
+
+    submitBtn.addEventListener('click', submitGame);
+    refreshBtn.addEventListener('click', () => {
+        clearInterval(timer);
+        correctAnswers = 0;
+        resultElement.textContent = '';
+        timerElement.textContent = '';
+        submitBtn.disabled = false;
+        refreshBtn.disabled = false;
+        generateQuestions();
+    });
+
+    generateQuestions();
+</script>
+
+</body>
+</html>
